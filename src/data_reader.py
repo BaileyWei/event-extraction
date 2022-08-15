@@ -142,6 +142,7 @@ class RoleReader(DatasetReader):
         line = json.loads(line)
         text_id = line.get('text_id')
         ori_text = line.get('text')
+        dict_id = line['cause_effect_list'][0].get('id')
         mention_text = line.get('cause_effect_mention')
         start_span_s = re.search(re.escape(mention_text), ori_text).span(0)[0]
         tokens = [Token(word) for word in ori_text]
@@ -155,6 +156,7 @@ class RoleReader(DatasetReader):
 
         roles_field = ListField(role_field_list)
         text_id_field = MetadataField(text_id)
+        dict_id_field = MetadataField(dict_id)
         words_field = MetadataField(ori_text)
         sentence_field = TextField(tokens, self.token_indexer)
         event_type_field = LabelField(label=0, skip_indexing=True, label_namespace='event_labels')
@@ -163,15 +165,16 @@ class RoleReader(DatasetReader):
                   'text_id': text_id_field,
                   'roles': roles_field,
                   'ori_text': words_field,
-                  'event_type': event_type_field
+                  'event_type': event_type_field,
+                  'dict_id': dict_id_field
                   }
         return Instance(fields)
 
-    def _read(self, file_path):
+    def _read(self, file_path, split=False):
 
         with codecs.open(file_path, 'r', 'UTF-8') as f:
             lines = f.readlines()
-            for line in tqdm(lines):
+            for i,line in tqdm(enumerate(lines)):
                 try:
                     instance = self.str_2_instance(line)
                     yield instance

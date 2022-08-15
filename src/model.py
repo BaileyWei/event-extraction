@@ -22,7 +22,7 @@ class ArgumentExtractor(Model):
 
         self.use_loss_weight = use_loss_weight
 
-    def forward(self, sentence, text_id, event_type=0, trigger=None, roles=None, ori_text=None):
+    def forward(self, sentence, text_id, event_type=0, trigger=None, roles=None, ori_text=None, dict_id=None):
         tokens = sentence['tokens']
         offset = sentence['tokens-offsets']
         mask = sentence['mask']
