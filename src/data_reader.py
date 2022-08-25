@@ -170,11 +170,21 @@ class RoleReader(DatasetReader):
                   }
         return Instance(fields)
 
-    def _read(self, file_path, split=False):
+    def read(self, file_path, train=True):
+        instances = self._read(file_path, train)
+        instances = [instance for instance in tqdm(instances)]
+        return instances
 
+    def _read(self, file_path, train):
         with codecs.open(file_path, 'r', 'UTF-8') as f:
             lines = f.readlines()
-            for i,line in tqdm(enumerate(lines)):
+            if train == True:
+                start = 0
+                end = len(lines) - len(lines) // 10
+            else:
+                start = len(lines) - len(lines) // 10
+                end = len(lines)
+            for i,line in tqdm(enumerate(lines[start:end])):
                 try:
                     instance = self.str_2_instance(line)
                     yield instance

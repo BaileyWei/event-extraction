@@ -38,12 +38,12 @@ parser.add_argument('--role_num', type=int, default=16)
 # parser.add_argument('--save_role_dir', type=str, default='./save/DuEE/bert_large/role/model_state_epoch_29.th')
 
 parser.add_argument('--save_role_dir', type=str,
-                    default='./save/origin/role/model_state_epoch_39.th')
+                    default='./save/origin/role1/model_state_epoch_39.th')
 parser.add_argument('--extractor_train_file', type=str, default='../data/train.json')
 parser.add_argument('--extractor_val_file', type=str, default='../data/valid.json')
 parser.add_argument('--extractor_test_file', type=str, default='../data/test.json')
 
-parser.add_argument('--extractor_batch_size', type=int, default=16)
+parser.add_argument('--extractor_batch_size', type=int, default=6)
 parser.add_argument('--extractor_argument_prob_threshold', type=float, default=0.5)
 
 parser.add_argument('--task_name', type=str, default='DuEE', help="DuEE or DuEE-Fin")  # DuEE or DuEE-Fin
@@ -85,14 +85,16 @@ def argument_extractor_deal(instances, iterator, argument_model_path):
         event_type = data['event_type']
         output = argument_extractor(sentence, sentence_id, event_type)
         batch_spans = argument_extractor.metric.get_span(output['start_logits'], output['end_logits'], event_type)
+        argument_extractor.metric.metric(batch_spans, data['roles'])
 
         for idb, batch_span in enumerate(batch_spans):
             s_id = sentence_id[idb]
             if s_id not in pred_spans:
                 pred_spans[s_id] = []
             pred_spans[s_id].extend(batch_span)
+    metric = argument_extractor.metric.get_metric(False)
     # print(pred_spans)
-    return pred_spans
+    return pred_spans, metric
 
 if __name__ == "__main__":
     import pandas as pd
@@ -170,12 +172,13 @@ if __name__ == "__main__":
     # ==== predict ====
 
     role_reader = RoleReader(token_indexer=bert_indexer)
-    dataset = role_reader.read(args.extractor_test_file)  # 用来预测的文件
+    dataset = role_reader.read(args.extractor_train_file, train=False)  # 用来预测的文件
 
 
     print('=====> Extracting arguments...')
-    pred_spans = argument_extractor_deal(instances=dataset, iterator=iterator,
+    pred_spans,metric = argument_extractor_deal(instances=dataset, iterator=iterator,
                                              argument_model_path=argument_model_path)
+    print(metric)
 
 
     # ==== output to json ====

@@ -86,6 +86,6 @@ if __name__ == '__main__':
     # loading dataset
     role_reader = RoleReader(token_indexer=bert_indexer)
     role_train_dataset = role_reader.read(args.extractor_train_file)
-    role_val_dataset = role_reader.read(args.extractor_val_file)
+    role_val_dataset = role_reader.read(args.extractor_train_file, train=False)
 
     role_extractor = train_argument_extractor(vocab, iterator, role_train_dataset, role_val_dataset)
